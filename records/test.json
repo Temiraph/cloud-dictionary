@@ -1,0 +1,21 @@
+{
+  "CloudDefinitions": [
+    {
+      "PutRequest": {
+        "Item": {
+          "term": { "S": "AWS KMS" },
+          "definition": { "S": "AWS Key Management Service (KMS) lets you create and control encryption keys." }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "term": { "S": "AWS Cognito" },
+          "definition": { "S": "Amazon Cognito provides authentication and user management for web and mobile apps." }
+        }
+      }
+    }
+  ]
+}
+

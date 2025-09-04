@@ -1,0 +1,39 @@
+name: Smoke Test (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: "API base URL (no trailing slash), e.g. https://xxxx.execute-api.eu-west-2.amazonaws.com/dev"
+        required: true
+      term:
+        description: "Dictionary term to fetch (must exist in DynamoDB)"
+        required: true
+        default: "AWS KMS"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo inputs
+        run: |
+          echo "API_URL=${{ github.event.inputs.api_url }}"
+          echo "TERM=${{ github.event.inputs.term }}"
+      - name: Hit endpoint
+        run: |
+          set -e
+          URL="${{ github.event.inputs.api_url }}/get-definition?term=$(python3 -c 'import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))' "${{ github.event.inputs.term }}")"
+          echo "Requesting: $URL"
+          HTTP_CODE=$(curl -s -o /tmp/body.json -w "%{http_code}" "$URL")
+          echo "HTTP_CODE=$HTTP_CODE"
+          cat /tmp/body.json || true
+          test "$HTTP_CODE" -eq 200
+      - name: Validate response has term
+        run: |
+          python3 - <<'PY'
+          import json,sys,os
+          with open("/tmp/body.json") as f:
+            data=json.load(f)
+             assert "term" in data and "definition" in data, f"Bad response: {data}"
+             print("Response OK:", data["term"])
+             PY

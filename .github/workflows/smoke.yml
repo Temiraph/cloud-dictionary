@@ -30,10 +30,9 @@ jobs:
           test "$HTTP_CODE" -eq 200
       - name: Validate response has term
         run: |
-          python3 - <<'PY'
-          import json,sys,os
-          with open("/tmp/body.json") as f:
-            data=json.load(f)
-             assert "term" in data and "definition" in data, f"Bad response: {data}"
-             print("Response OK:", data["term"])
-             PY
+          TERM=$(jq -r '.term // empty' /tmp/body.json)
+          DEF=$(jq -r '.definition // empty' /tmp/body.json)
+          if [ -z "$TERM" ] || [ -z "$DEF" ]; then
+            echo "Bad response:"; cat /tmp/body.json; exit 1
+          fi
+          echo "Response OK: $TERM"
